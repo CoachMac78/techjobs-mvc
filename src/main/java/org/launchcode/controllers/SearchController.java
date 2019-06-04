@@ -16,46 +16,41 @@ import java.util.HashMap;
 @RequestMapping("search")
 public class SearchController {
 
-    @RequestMapping(value = "search")
+    @RequestMapping(value = "")
     public String search(Model model) {
         model.addAttribute("columns", ListController.columnChoices);
         return "search";
     }
 
+
     // TODO #1 - Create handler to process search request and display results
-    @RequestMapping(value = "search/results")
-    public String searchColumnValues(Model model, @RequestParam String column, @RequestParam String searchTerm) {
+    @RequestMapping(value = "/results")
+    public String searchColumnValues(Model model, @RequestParam String searchType, @RequestParam String searchTerm) {
+        model.addAttribute("columns", ListController.columnChoices);
 
-
-        if (column.equals("all")) {
-            ArrayList<HashMap<String, String>> results = new ArrayList<>();
+        if (searchType.equals("all")) {
+            ArrayList<HashMap<String, String>> results = JobData.findByValue(searchTerm);
             ArrayList<HashMap<String, String>> jobs = JobData.findAll();
 
-            for (HashMap job : jobs) {
-                if (job.containsValue(searchTerm)) {
-                    results.add(job);
-                    model.addAttribute("title", "All Jobs containing that term");
-                    model.addAttribute("jobs", jobs);
-
-                }
-            }
+            model.addAttribute("title", "All Jobs containing that term");
+            model.addAttribute("jobs", jobs);
+            model.addAttribute("results", results);
             return "search";
-        } else {
-                    ArrayList<String> results = new ArrayList<>();
-                    ArrayList<String> specificJobs = JobData.findAll(column);
-                    for (String job : specificJobs) {
-                        if (job.contains(searchTerm))  {
-                            results.add(job);
-
-                            model.addAttribute("title", "All " + ListController.columnChoices.get(column) + " Values");
-                            model.addAttribute("column", column);
-                            model.addAttribute("specificJobs", specificJobs);
-
-                        }
+        }
 
 
-                    }
-                    return "search";
-                }
+
+       else {
+           ArrayList<HashMap<String, String>> results = JobData.findByColumnAndValue(searchType, searchTerm);
+           ArrayList<String> specificJobs = JobData.findAll(searchType);
+                model.addAttribute("title", "All " + ListController.columnChoices.get(searchType) + " Values");
+                model.addAttribute("searchType", searchType);
+                model.addAttribute("specificJobs", specificJobs);
+                model.addAttribute("results", results);
+            return "search";
+       }
+
+
     }
 }
+
